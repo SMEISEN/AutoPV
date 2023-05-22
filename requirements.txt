@@ -1,0 +1,4 @@
+-e git+https://github.com/SMEISEN/pyWATTS.git@453133590beb64866ec7576fa58bebaf38a84ed5#egg=pywatts
+hyperopt=0.2.7
+ray=2.0.1
+pvlib=0.9.3
