@@ -88,7 +88,7 @@ def create_individual_model(plant: str, pipeline_preprocessing: Pipeline, pipeli
 
 
 def create_pipeline_model_engineering(plants_kWp: dict, plant_test: str, model_pool: ModelPool,
-                                      preprocessing: Pipeline, modules: dict):
+                                      pipeline_preprocessing: Pipeline, modules: dict):
     """
     Creates the training pipeline for the PV template including the linear regression and the dummy regression.
     """
@@ -99,12 +99,12 @@ def create_pipeline_model_engineering(plants_kWp: dict, plant_test: str, model_p
     # Train models for ensemble
     for plant, kwp in plants_kWp.items():
         if model_pool == ModelPool.nearby:  # nearby plants model pool
-            create_individual_model(plant=plant, pipeline_preprocessing=preprocessing,
+            create_individual_model(plant=plant, pipeline_preprocessing=pipeline_preprocessing,
                                     pipeline_model_pool=pipeline_model_pool, modules=modules[plant],
                                     computation_mode=ComputationMode.Default,
                                     pipe_model_path=f"./results/{plant_test}/model_{plant}/")
         elif model_pool == ModelPool.default:  # default model pool
-            create_pvlib_model(plant=plant, modules=modules[plant], pipeline_preprocessing=preprocessing,
+            create_pvlib_model(plant=plant, modules=modules[plant], pipeline_preprocessing=pipeline_preprocessing,
                                pipeline_model_pool=pipeline_model_pool, kwp=kwp)
         else:
             raise Exception(f"Model pool {model_pool} not known!")

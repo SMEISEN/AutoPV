@@ -1,11 +1,11 @@
 from pywatts.core.pipeline import Pipeline
 from pywatts.modules import CustomScaler
 
-from autopv.config import MeasurementUnit
+from autopv.config import MeasurementUnit, ModelPool
 
 
-def create_pipeline_preprocessing(plant_kWp_train: dict, plant_kWp_test: dict, plant_test: str, modules: dict,
-                                  measurement_unit: MeasurementUnit, samples_per_hour: int):
+def create_pipeline_preprocessing(plant_kWp_train: dict, plant_kWp_test: dict, plant_test: str, model_pool: ModelPool,
+                                  modules: dict, measurement_unit: MeasurementUnit, samples_per_hour: int):
     """
     Creates the pre-processing pipeline for the PV template including scaling, normalizing, and feature extraction.
     """
@@ -28,15 +28,16 @@ def create_pipeline_preprocessing(plant_kWp_train: dict, plant_kWp_test: dict, p
         else:
             raise Exception(f"Measurement unit {measurement_unit} not known!")
 
-    # Scale weather data
-    scaled_radiation = modules["scaler_radiation"](x=pipeline["radiation"])
-    scaled_temperature = modules["scaler_temperature"](x=pipeline["temperature"])
+    if model_pool == ModelPool.nearby:  # nearby plants model pool
+        # Scale weather data
+        scaled_radiation = modules["scaler_radiation"](x=pipeline["radiation"])
+        scaled_temperature = modules["scaler_temperature"](x=pipeline["temperature"])
 
-    # Polynomial features
-    modules["features_polynomial"](f1=scaled_radiation, f2=scaled_temperature)
+        # Polynomial features
+        modules["features_polynomial"](f1=scaled_radiation, f2=scaled_temperature)
 
-    # Calendar features
-    modules["features_calendar"](x=input_step)
+        # Calendar features
+        modules["features_calendar"](x=input_step)
 
     pipeline[plant_test].step.last = True
     pipeline["radiation"].step.last = True

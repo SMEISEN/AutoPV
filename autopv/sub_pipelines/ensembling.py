@@ -24,8 +24,7 @@ def create_pipeline_ensemble(plant_test, pipeline_preprocessing: Pipeline,
     # Create ensemble pipeline
     pipeline_ensemble = Pipeline(path=f"../results/{plant_test}/ensemble", name="pipe_ensemble", batch=C)
 
-    step_info = assign_inputs_to_subpipeline(pipeline_left=pipeline_preprocessing, pipeline_right=pipeline_ensemble,
-                                             steps_set_transform=["scaled_radiation", "scaled_temperature"])
+    step_info = assign_inputs_to_subpipeline(pipeline_left=pipeline_preprocessing, pipeline_right=pipeline_ensemble)
 
     if adaption_configuration == AdaptionConfiguration.none:
         weight_optimization = None  # averaging

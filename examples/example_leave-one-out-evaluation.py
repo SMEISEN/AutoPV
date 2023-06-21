@@ -49,11 +49,12 @@ if __name__ == "__main__":
 
             rd = np.random.RandomState(314 + int("".join(filter(str.isdigit, target_name))))
 
-            autopv = AutoPV(model_pool=model_pool, measurement_unit=measurement_unit,
+            autopv = AutoPV(target_name=target_name, target_kWp=target_kWp,
+                            model_pool=model_pool, measurement_unit=measurement_unit,
                             adaption_config=adaption_config, C=C, K=K, nearby_plants_kWp=nearby_plants_kWp)
 
             # Summaries will be created in the result-folder
-            autopv.fit(data=train, target_name=target_name, target_kWp=target_kWp)
-            autopv.predict(data=test, target_name=target_name, target_kWp=target_kWp, online_start=online_start)
+            autopv.fit(data=train)
+            autopv.predict(data=test, online_start=online_start)
 
     print(f"Finished! Experiment took {(time.time() - start) / 60} minutes!")

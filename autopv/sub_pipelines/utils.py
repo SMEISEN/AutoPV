@@ -3,11 +3,13 @@ import os
 import cloudpickle
 from typing import List
 
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
+
 from pywatts.core.step_information import StepInformation
 
 from pywatts.core.pipeline import Pipeline
 from pywatts.core.computation_mode import ComputationMode
-from pywatts.modules import SKLearnWrapper
+from pywatts.modules import SKLearnWrapper, CalendarExtraction, CalendarFeature
 from pywatts.summaries import RMSE, MAE
 
 from sklearn.linear_model import LinearRegression
@@ -47,43 +49,59 @@ def assign_inputs_to_subpipeline(pipeline_left: Pipeline, pipeline_right: Pipeli
     return pipeline_left(**kwargs)
 
 
-def create_modules(plant: str, model_pool: ModelPool):
+def create_modules(ensemble_plants_kWp: dict, model_pool: ModelPool):
     """
     Creates an individual model.
     """
 
-    # default model pool
-    if model_pool == ModelPool.default:
-        return {
-            "pv_lib":
-                PVLibWrapper(latitude=48.9685, longitude=8.30704, altitude=116,
-                             surface_azimuth=int(plant.split("_")[1]), surface_tilt=int(plant.split("_")[3]),
-                             name=f"model_{plant}")
-        }
-
-    # nearby plants model pool
-    ray_tune_kwargs, ray_init_kwargs = create_search_space(plant=plant)
-    return {
-        "reg_day":
-            SKLearnWrapper(module=LinearRegression(fit_intercept=True),
-                           name=f"model_day_{plant}"),
-        "reg_night":
-            SKLearnWrapper(module=DummyRegressor(strategy='constant', constant=0.0),
-                           name=f"model_night_{plant}"),
-        "condition_day_night":
-            Condition(condition=lambda x: x > 0,
-                      name=f"cond_day-night_{plant}"),
-        "correction_non_negative":
-            Condition(condition=lambda x: x > 0,
-                      name=f"cond_non-negative_{plant}"),
-        "tuner": RayTuneWrapper(name=f"model_{plant}",
-                                replace_weather=False,  # training: False, online: True
-                                estimator=None,  # estimator is set later
-                                cv=5,  # comment for old default pool
-                                split_method=SplitMethod.RandomSample,  # comment for old default pool
-                                ray_tune_kwargs=ray_tune_kwargs, ray_init_kwargs=ray_init_kwargs,
-                                k_best=1, refit_only=True)
+    modules = {
+        "scaler_radiation": SKLearnWrapper(module=MinMaxScaler(), name="scaled_radiation"),
+        "scaler_temperature": SKLearnWrapper(module=MinMaxScaler(), name="scaled_temperature"),
+        "features_polynomial": SKLearnWrapper(module=PolynomialFeatures(degree=3, include_bias=False),
+                                              name="weather_features"),
+        "features_calendar": CalendarExtraction(continent="Europe", country="Germany", name="calendar_features",
+                                                features=[CalendarFeature.month_cos, CalendarFeature.month_sine,
+                                                          CalendarFeature.minute_of_day_cos,
+                                                          CalendarFeature.minute_of_day_sine])
     }
+
+    for plant in ensemble_plants_kWp.keys():
+
+        # default model pool
+        if model_pool == ModelPool.default:
+            modules.update({plant: {
+                "pv_lib":
+                    PVLibWrapper(latitude=48.9685, longitude=8.30704, altitude=116,
+                                 surface_azimuth=int(plant.split("_")[1]), surface_tilt=int(plant.split("_")[3]),
+                                 name=f"model_{plant}")
+            }})
+
+        # nearby plants model pool
+        else:
+            ray_tune_kwargs, ray_init_kwargs = create_search_space(plant=plant)
+            modules.update({plant: {
+                "reg_day":
+                    SKLearnWrapper(module=LinearRegression(fit_intercept=True),
+                                   name=f"model_day_{plant}"),
+                "reg_night":
+                    SKLearnWrapper(module=DummyRegressor(strategy='constant', constant=0.0),
+                                   name=f"model_night_{plant}"),
+                "condition_day_night":
+                    Condition(condition=lambda x: x > 0,
+                              name=f"cond_day-night_{plant}"),
+                "correction_non_negative":
+                    Condition(condition=lambda x: x > 0,
+                              name=f"cond_non-negative_{plant}"),
+                "tuner": RayTuneWrapper(name=f"model_{plant}",
+                                        replace_weather=False,  # training: False, online: True
+                                        estimator=None,  # estimator is set later
+                                        cv=5,  # comment for old default pool
+                                        split_method=SplitMethod.RandomSample,  # comment for old default pool
+                                        ray_tune_kwargs=ray_tune_kwargs, ray_init_kwargs=ray_init_kwargs,
+                                        k_best=1, refit_only=True)
+            }})
+
+    return modules
 
 
 def save_modules(pipeline_modules: dict, dry: str = "../results/individual_ensembling/models"):
