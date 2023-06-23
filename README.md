@@ -33,6 +33,9 @@ Exemplary evaluations using AutoPV are given in the examples folder.
 If you use this method please cite the corresponding paper:
 > Stefan Meisenbacher, Benedikt Heidrich, Tim Martin, Ralf Mikut, and Veit Hagenmeyer. 2023. AutoPV: Automated photovoltaic forecasts with limited information using an ensemble of pre-trained models. In Proceedings of the Fourteenth ACM International Conference on Future Energy Systems (e-Energy ’23). Association for Computing Machinery, New York, NY, USA, 386–414. https://doi.org/10.1145/3575813.3597348
 
+## Funding
+This project is funded by the Helmholtz Association under the Program “Energy System Design” and the Helmholtz Association’s Initiative and Networking Fund through Helmholtz AI.
+
 ## References
 
 The example data includes weather measurements from DWD:
