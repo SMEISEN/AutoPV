@@ -22,3 +22,6 @@ if __name__ == "__main__":
     # Estimate the ensemble weights online every C days using the PV plant's measurement data of the most recent K days
     # and predict with the online-fitted AutoPV model.
     result_predict = autopv.predict(data=test, online_start=pd.Timestamp("2020-01-01 00:00:00"))
+
+    # Get AutoPV's ensemble weights
+    weights = autopv.weights_

@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # Summaries will be created in the result-folder.
     _, train, test = load_example_data()
 
-    autopv = AutoPV(target_name="mixed_oriented_plant", target_kWp=440,
+    autopv = AutoPV(target_name="mixed_oriented_plant", target_kWp=440, latitude=48.9685, longitude=8.30704,
                     model_pool=ModelPool.default, measurement_unit=MeasurementUnit.kW,
                     adaption_config=AdaptionConfiguration.AIB, C=pd.Timedelta("28d"), K=pd.Timedelta("28d"))
 
@@ -20,3 +20,6 @@ if __name__ == "__main__":
     # Estimate the ensemble weights online every C days using the most recent K samples
     # and predict with the online-fitted AutoPV model.
     result_predict = autopv.predict(data=test, online_start=pd.Timestamp("2020-01-01 00:00:00"))
+
+    # Get AutoPV's ensemble weights
+    weights = autopv.weights_

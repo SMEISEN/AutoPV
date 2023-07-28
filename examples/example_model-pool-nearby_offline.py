@@ -19,3 +19,6 @@ if __name__ == "__main__":
 
     # Predict with the offline-fitted AutoPV model.
     result_predict = autopv.predict(data=test)
+
+    # Get AutoPV's ensemble weights
+    weights = autopv.weights_

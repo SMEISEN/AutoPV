@@ -15,6 +15,7 @@ from pywatts.summaries import RMSE, MAE
 from sklearn.linear_model import LinearRegression
 from sklearn.dummy import DummyRegressor
 
+from pywatts_modules.ensemble import Ensemble
 from pywatts_modules.pvlib_wrapper import PVLibWrapper
 from pywatts_modules.condition import Condition
 from pywatts_modules.hyperparameter_optimization import RayTuneWrapper, SplitMethod
@@ -49,7 +50,8 @@ def assign_inputs_to_subpipeline(pipeline_left: Pipeline, pipeline_right: Pipeli
     return pipeline_left(**kwargs)
 
 
-def create_modules(ensemble_plants_kWp: dict, model_pool: ModelPool):
+def create_modules(ensemble_plants_kWp: dict, model_pool: ModelPool, target_name: str,
+                   latitude: float = None, longitude: float = None, altitude: float = None):
     """
     Creates an individual model.
     """
@@ -62,7 +64,8 @@ def create_modules(ensemble_plants_kWp: dict, model_pool: ModelPool):
         "features_calendar": CalendarExtraction(continent="Europe", country="Germany", name="calendar_features",
                                                 features=[CalendarFeature.month_cos, CalendarFeature.month_sine,
                                                           CalendarFeature.minute_of_day_cos,
-                                                          CalendarFeature.minute_of_day_sine])
+                                                          CalendarFeature.minute_of_day_sine]),
+        "ensemble": Ensemble(weights="autoOpt", name=f"ensemble_{target_name}")
     }
 
     for plant in ensemble_plants_kWp.keys():
@@ -71,7 +74,7 @@ def create_modules(ensemble_plants_kWp: dict, model_pool: ModelPool):
         if model_pool == ModelPool.default:
             modules.update({plant: {
                 "pv_lib":
-                    PVLibWrapper(latitude=48.9685, longitude=8.30704, altitude=116,
+                    PVLibWrapper(latitude=latitude, longitude=longitude, altitude=altitude,
                                  surface_azimuth=int(plant.split("_")[1]), surface_tilt=int(plant.split("_")[3]),
                                  name=f"model_{plant}")
             }})
