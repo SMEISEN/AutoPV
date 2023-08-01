@@ -17,7 +17,7 @@ def create_pipeline_preprocessing(plant_kWp_train: dict, plant_kWp_test: dict, p
     input_step = pipeline[plant_test]
 
     # Normalize PV generation profiles
-    plants_kWp = {**plant_kWp_train, **plant_kWp_test}
+    plants_kWp = {**plant_kWp_train, **plant_kWp_test} if model_pool == ModelPool.nearby else plant_kWp_test
     for plant, peak_power in plants_kWp.items():
         if measurement_unit == MeasurementUnit.kW:
             CustomScaler(multiplier=1 / peak_power, name=f"scale_{plant}")(x=pipeline[plant])
