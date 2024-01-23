@@ -1,5 +1,8 @@
 # AutoPV: Automated photovoltaic forecasts with limited information using an ensemble of pre-trained models
-This repository contains a Python Implementation of AutoPV for automated photovoltaic forecasts with limited information using an ensemble of pre-trained models.
+AutoPV addresses three challenges:
+- Missing information about the PV mounting configuration (tilt and azimuth angles, mixed-oriented configurations)
+- Missing or limited training data for PV model design (cold-start problem)
+- Adaption to drifting PV power generation capabilities during operation (e.g. age-related degradation, soiling, maintenance)
 
 ## Methodology
 
